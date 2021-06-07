@@ -1,23 +1,25 @@
-# AKS - Multi Region cockroachDB
+# AKS Multi-Region CockroachDB
 
-Description: Setting up and configuring a multi region cockroach cluster on Azure AKS
-Tags: Azure
+Description: Setting up and configuring a multi-region CockroachDB cluster on Azure AKS
+Tags: Azure, AKS, Kubernetes, K8s, data
 
-- Create a set of variables
+- Create a set of variables in the file [env.sh](./env.sh).
 
     ```bash
-    vm_type="Standard_DS2_v2"
+    vm_type="Standard_E2d_v4"
     n_nodes=3
-    rg="crdb-aks-multi-region"
-    clus1="crdb-aks-eastus"
-    clus2="crdb-aks-westus"
-    clus3="crdb-aks-northeurope"
-    loc1="eastus"
-    loc2="westus"
-    loc3="northeurope"
+    rg="$USER-aks-multi-region"
+
+    loc1="westus"
+    loc2="centralus"
+    loc3="eastus"
+
+    clus1="crdb-aks-$loc1"
+    clus2="crdb-aks-$loc2"
+    clus3="crdb-aks-$loc3"
     ```
 
-- Create a Resource Group for the project
+- Create a Resource Group (RG) for the project. [This script](./01_create_rg.sh) will create this RG.
 
     ```bash
     az group create --name $rg --location $loc1
@@ -25,7 +27,11 @@ Tags: Azure
 
 - Networking configuration
 
-    In order to enable VPC peering between the regions, the CIDR blocks of the VPCs must not overlap. This value cannot change once the cluster has been created, so be sure that your IP ranges do not overlap.
+    In order to enable VPC peering between the regions, the CIDR blocks of the
+    VPCs must not overlap. This value cannot change once the cluster has been
+    created, so be sure that your IP ranges do not overlap.
+
+    [This script](./02_network.sh) handles both the VNet creation and the peering steps.
 
     - Create vnets for all Regions
 
@@ -76,7 +82,7 @@ Tags: Azure
             --remote-vnet crdb-$loc1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
-- Create the Kubernetes clusters in each region
+- Create the Kubernetes clusters in each region.  [This script](./03_k8s_clusters.sh) handles this step.
     - To get SubnetID
 
         ```bash
@@ -85,41 +91,39 @@ Tags: Azure
         loc3subid=$(az network vnet subnet list --resource-group $rg --vnet-name crdb-$loc3 | jq -r '.[].id')
         ```
 
-    - Create K8s Clusters in each region
+    - Create K8s clusters in each region
 
         ```bash
         az aks create \
-        --name $clus1 \
-        --resource-group $rg \
-        --network-plugin azure \
-        --zones 1 2 3 \
-        --vnet-subnet-id $loc1subid \
-        --node-count $n_nodes
+          --name $clus1 \
+          --resource-group $rg \
+          --network-plugin azure \
+          --vnet-subnet-id $loc1subid \
+          --node-count $n_nodes \
+          --node-vm-size $vm_type
         ```
 
         ```bash
         az aks create \
-        --name $clus2 \
-        --resource-group $rg \
-        --network-plugin azure \
-        --zones 1 2 3 \
-        --vnet-subnet-id $loc2subid \
-        --node-count $n_nodes
-
+          --name $clus2 \
+          --resource-group $rg \
+          --network-plugin azure \
+          --vnet-subnet-id $loc2subid \
+          --node-count $n_nodes \
+          --node-vm-size $vm_type
         ```
 
         ```bash
         az aks create \
-        --name $clus3 \
-        --resource-group $rg \
-        --network-plugin azure \
-        --zones 1 2 3 \
-        --vnet-subnet-id $loc3subid \
-        --node-count $n_nodes
-
+          --name $clus3 \
+          --resource-group $rg \
+          --network-plugin azure \
+          --vnet-subnet-id $loc3subid \
+          --node-count $n_nodes \
+          --node-vm-size $vm_type
         ```
 
-    - To Configure Kubectl context use
+    - Configure kubectl as shown below or use [this script](./04_get_credentials.sh).
 
         ```bash
         az aks get-credentials --name $clus1 --resource-group $rg
@@ -141,7 +145,7 @@ Tags: Azure
         kubectl config use-context crdb-aks-northeurope
         ```
 
-    - Test Network Connectivity
+    - Test Network Connectivity as shown below or use [this script](./05_ping_test.sh).
 
         ```bash
         #Set Context north EU
@@ -156,7 +160,7 @@ Tags: Azure
         kubectl run -it network-test --image=alpine --restart=Never -- ping 40.0.0.4
         ```
 
-    - Download and Configue the Scripts to deploy cockroachdb
+    - Download and configure the scripts to deploy CockroachDB. **NOTE**: This repo includes these files.
         1. Create a directory and download the required script and configuration files into it:   
 
             ```bash
@@ -172,30 +176,24 @@ Tags: Azure
             https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/{README.md,client-secure.yaml,cluster-init-secure.yaml,cockroachdb-statefulset-secure.yaml,dns-lb.yaml,example-app-secure.yaml,external-name-svc.yaml,setup.py,teardown.py}
             ```
 
-        2. Retrieve the `kubectl` "contexts" for your clusters: 
+        2. Run [./06_contexts_regions.sh](./06_contexts_regions.sh) to generate the `context` and `regions` maps you'll need in the next steps.
 
             ```bash
-            kubectl config get-contexts
+            $ ./06_contexts_regions.sh 
+
+            # Replace the existing contexts and regions definitions in setup.py with these:
+            contexts = { 'westus': 'crdb-aks-westus', 'centralus': 'crdb-aks-centralus', 'eastus': 'crdb-aks-eastus' }
+            regions = { 'westus': 'westus', 'centralus': 'centralus', 'eastus': 'eastus' }
+
             ```
 
-            At the top of the `setup.py` script, fill in the `contexts` map with the zones of your clusters and their "context" names, e.g.:
+            Use this output to edit `setup.py`.  **NOTE**: the `regions` map just maps each region to itself.
 
-            > `context = { 'us-east1-b': 'gke_cockroach-shared_us-east1-b_cockroachdb1', 'us-west1-a': 'gke_cockroach-shared_us-west1-a_cockroachdb2', 'us-central1-a': 'gke_cockroach-shared_us-central1-a_cockroachdb3',
-            }`
-
-        3. In the `setup.py` script, fill in the `regions` map with the zones and corresponding regions of your clusters, for example:
-
-            > `$ regions = { 'us-east1-b': 'us-east1', 'us-west1-a': 'us-west1', 'us-central1-a': 'us-central1',
-            }`
-
-            Setting `regions` is optional, but recommended, because it improves CockroachDB's ability to diversify data placement if you use more than one zone in the same region. If you aren't specifying regions, just leave the map empty.
-
-        4. If you haven't already, [install CockroachDB locally and add it to your `PATH`](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb). The `cockroach` binary will be used to generate certificates.
+        3. If you haven't already, [install CockroachDB locally and add it to your `PATH`](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb). The `cockroach` binary will be used to generate certificates.
 
             If the `cockroach` binary is not on your `PATH`, in the `setup.py` script, set the `cockroach_path` variable to the path to the binary.
 
-        5. Optionally, to optimize your deployment for better performance, review [CockroachDB Performance on Kubernetes](https://www.cockroachlabs.com/docs/v20.1/kubernetes-performance) and make the desired modifications to the `cockroachdb-statefulset-secure.yaml` file.
-        6. Run the `setup.py` script: 
+        4. Run the `setup.py` script: 
 
             ```bash
             python setup.py
@@ -203,7 +201,7 @@ Tags: Azure
 
             As the script creates various resources and creates and initializes the CockroachDB cluster, you'll see a lot of output, eventually ending with `job "cluster-init-secure" created`.
 
-        7. Configure Core DNS
+        5. Configure Core DNS
             
             Each Kubernetes cluster has a [CoreDNS](https://coredns.io/) service that responds to DNS requests for pods in its region. CoreDNS can also forward DNS requests to pods in other regions.
 
@@ -242,7 +240,7 @@ Tags: Azure
             kubectl get -n kube-system cm/coredns --export -o yaml --context <cluster-context>
             ```
 
-        8. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column - This could take a couple of minutes to propergate, indicating that they've successfully joined the cluster:    
+        6. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column - This could take a couple of minutes to propergate, indicating that they've successfully joined the cluster:    
 
             ```bash
             kubectl get pods --selector app=cockroachdb --all-namespaces --context <cluster-context-1>
@@ -272,7 +270,7 @@ Tags: Azure
             us-west1-a cockroachdb-2 1/1 Running 0 14m`
 
 
-        9. Create secure clients
+        7. Create secure clients
 
         ```bash
         kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc1
@@ -282,8 +280,9 @@ Tags: Azure
         kubectl exec -it cockroachdb-client-secure -n $loc1 -- ./cockroach sql --certs-dir=/cockroach-certs --host=cockroachdb-public
         ```
 
-        10. Port forward the admin ui
+        8. Port forward the admin ui
 
         ```bash
         kubectl port-forward cockroachdb-0 8080 --context $clus1 --namespace $loc1
         ```
+
