@@ -38,15 +38,6 @@ my $reg_def = "
    }
 ";
 
-open SETENV, "bash -c '. ./env.sh && env' |" or die $!;
-while (<SETENV>)
-{
-  chomp;
-  my ($k, $v) = split /=/;
-  $ENV{$k} = $v;
-}
-close SETENV;
-
 my @loc = ();
 my %clus = ();
 my %lb_ip = ();
@@ -66,7 +57,7 @@ foreach my $i (1..3)
 
 foreach my $loc (@loc)
 {
-  open YAML, "> configmap-$loc-TEST.yaml" or die $!;
+  open YAML, "> configmap-$loc.yaml" or die $!;
   {
     print YAML $header;
     foreach my $l (@loc)

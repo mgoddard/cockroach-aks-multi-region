@@ -21,7 +21,7 @@ data:
        reload
        loadbalance
    }
-   # 3 = eastus
+
    westus.svc.cluster.local:53 {       # <---- Modify
        log
        errors
@@ -30,12 +30,12 @@ data:
        forward . 104.40.66.179 {      # <---- Modify
        }
    }
-   #crdb-aks-centralus.svc.cluster.local:53 {       # <---- Modify
-   centralus.svc.cluster.local:53 {       # <---- Modify
+
+   eastus.svc.cluster.local:53 {       # <---- Modify
        log
        errors
        ready
        cache 10
-       forward . 104.45.233.133 {      # <---- Modify
+       forward . 137.117.11.243 {      # <---- Modify
        }
    }
