@@ -21,21 +21,20 @@ data:
        reload
        loadbalance
    }
-   eastus.svc.cluster.local:53 {       # <---- Modify
-       log
-       errors
-       ready
-       cache 10
-       forward . 20.0.0.43 20.0.0.87 52.186.45.255 {      # <---- Modify
-
-       }
-   }
+   # 2 = centralus
    westus.svc.cluster.local:53 {       # <---- Modify
        log
        errors
        ready
        cache 10
-       forward . 30.0.0.22 30.0.0.46 52.186.44.160 {      # <---- Modify
-
+       forward . 104.40.66.179 {      # <---- Modify
+       }
+   }
+   eastus.svc.cluster.local:53 {       # <---- Modify
+       log
+       errors
+       ready
+       cache 10
+       forward . 137.117.11.243 {      # <---- Modify
        }
    }
