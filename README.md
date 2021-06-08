@@ -179,7 +179,7 @@ Tags: Azure, AKS, Kubernetes, K8s, data
         2. Run [./06_contexts_regions.sh](./06_contexts_regions.sh) to generate the `context` and `regions` maps you'll need in the next steps.
 
             ```bash
-            $ ./06_contexts_regions.sh 
+            ./06_contexts_regions.sh 
 
             # Replace the existing contexts and regions definitions in setup.py with these:
             contexts = { 'westus': 'crdb-aks-westus', 'centralus': 'crdb-aks-centralus', 'eastus': 'crdb-aks-eastus' }
@@ -212,7 +212,7 @@ Tags: Azure, AKS, Kubernetes, K8s, data
             1. [This script](./07_gen_configmaps.sh) will create the three `configmap-*.yaml` files you need in the next step.
 
             ```bash
-            $ ./07_gen_configmaps.sh
+            ./07_gen_configmaps.sh
             ```
 
             These files will be named `configmap-`, the name of the region (the `$loc*` values from `env.sh`), then `.yaml`.
@@ -294,5 +294,11 @@ Tags: Azure, AKS, Kubernetes, K8s, data
 
         ```bash
         kubectl port-forward cockroachdb-0 8080 --context $clus1 --namespace $loc1
+        ```
+
+        9. Tear it all down when you're finished
+
+        ```bash
+        ./09_teardown.sh
         ```
 
