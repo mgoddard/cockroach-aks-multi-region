@@ -47,7 +47,7 @@ where `$clus1`, `$clus2` and `$clus3` are defined in your `./env.sh` file.
 
 ## If you haven't done this already, install CockroachDB locally
 Download it [here](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb) and
-install the `cockroach` binary to a directory in your `PATH`.
+install the `cockroach` binary into a directory in your `PATH`.
 The `cockroach` binary will be used to generate certificates.
 
 If `cockroach` is not on your `PATH`, edit in the `./multiregion/setup.py`, assigning 
