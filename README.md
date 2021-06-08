@@ -45,8 +45,8 @@ where `$clus1`, `$clus2` and `$clus3` are defined in your `./env.sh` file.
 
 ## (optional) Run [this script](./05_ping_test.sh) to test network connectivity.
 
-## If you haven't done this already, [install CockroachDB locally and add it to
-your `PATH`](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb).
+## If you haven't done this already, install CockroachDB locally and add it to
+`PATH`. Download it [here](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb).
 The `cockroach` binary will be used to generate certificates.
 
 If the `cockroach` binary is not on your `PATH`, in the `setup.py` script, set
