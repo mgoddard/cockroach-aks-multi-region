@@ -45,12 +45,13 @@ where `$clus1`, `$clus2` and `$clus3` are defined in your `./env.sh` file.
 
 ## (optional) Run [this script](./05_ping_test.sh) to test network connectivity.
 
-## If you haven't done this already, install CockroachDB locally and add it to
-`PATH`. Download it [here](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb).
+## If you haven't done this already, install CockroachDB locally
+Download it [here](https://www.cockroachlabs.com/docs/v20.1/install-cockroachdb) and
+install the `cockroach` binary to a directory in your `PATH`.
 The `cockroach` binary will be used to generate certificates.
 
-If the `cockroach` binary is not on your `PATH`, in the `setup.py` script, set
-the `cockroach_path` variable to the path to the binary.
+If `cockroach` is not on your `PATH`, edit in the `./multiregion/setup.py`, assigning 
+the `cockroach_path` variable to the path to the `cockroach` binary.
 
 ## Run [this script](./06_contexts_regions.sh) to generate the `context` and
 `regions` maps you'll embed into `./multiregion/setup.py`.
