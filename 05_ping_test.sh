@@ -6,6 +6,7 @@
 
 kubectl config use-context $clus1
 kubectl run network-test --image=alpine --restart=Never -- sleep 999999
+sleep 5
 ip=$( kubectl describe pods | perl -ne 'print "$1\n" if /^IP:\s+((\d+\.){3}\d+).*$/' )
 
 kubectl config use-context $clus3

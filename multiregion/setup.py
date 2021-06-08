@@ -22,8 +22,8 @@ from time import sleep
 #     'us-central1-b': 'gke_cockroach-alex_us-central1-b_my-cluster',
 #     'us-west1-b': 'gke_cockroach-alex_us-west1-b_my-cluster',
 # }
-contexts = {
-}
+contexts = { 'westus': 'crdb-aks-westus', 'centralus': 'crdb-aks-centralus', 'eastus': 'crdb-aks-eastus' }
+regions = { 'westus': 'westus', 'centralus': 'centralus', 'eastus': 'eastus' }
 
 # Fill in the `regions` map with the zones and corresponding regions of your
 # clusters.
@@ -38,8 +38,6 @@ contexts = {
 #     'us-central1-b': 'us-central1',
 #     'us-west1-b': 'us-west1',
 # }
-regions = {
-}
 
 # Paths to directories in which to store certificates and generated YAML files.
 certs_dir = './certs'

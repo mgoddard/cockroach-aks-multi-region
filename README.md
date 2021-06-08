@@ -209,10 +209,10 @@ Tags: Azure, AKS, Kubernetes, K8s, data
 
             There are three sample config maps [here](./EXAMPLE).
 
-            1. [This script](./08_gen_configmaps.sh) will create the three `configmap-*.yaml` files you need in the next step.
+            1. [This script](./07_gen_configmaps.sh) will create the three `configmap-*.yaml` files you need in the next step.
 
             ```bash
-            $ ./08_gen_configmaps.sh
+            $ ./07_gen_configmaps.sh
             ```
 
             These files will be named `configmap-`, the name of the region (the `$loc*` values from `env.sh`), then `.yaml`.
@@ -223,7 +223,8 @@ Tags: Azure, AKS, Kubernetes, K8s, data
             kubectl -n kube-system get configmap coredns -o yaml > <configmap-backup-name>
             ```
 
-            Then apply the new ConfigMap (**NOTE**: <cluster-context> is the `$clus*` value for the given region):
+            Then apply the new ConfigMaps.
+            **NOTE** [This script](./08_apply_configmaps.sh) can instead be used to apply all three config maps.
 
             ```bash
             kubectl apply -f <configmap-name> --context <cluster-context>
@@ -268,17 +269,28 @@ Tags: Azure, AKS, Kubernetes, K8s, data
             us-west1-a cockroachdb-2 1/1 Running 0 14m`
 
 
-        7. Create secure clients
+        7. SSH into one of the pods **OR** Create secure client
 
-        ```bash
-        kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc1
-        ```
+           - SSH approach to get a SQL prompt:
+             ```bash
+             kubectl exec --stdin --tty cockroachdb-0 --namespace $loc3 --context $clus3 -- /bin/bash
+             ```
+             Then, start the SQL CLI:
+             ```bash
+             # ./cockroach sql --certs-dir ./cockroach-certs
+             ```
+           - Creation of secure client:
 
-        ```bash
-        kubectl exec -it cockroachdb-client-secure -n $loc1 -- ./cockroach sql --certs-dir=/cockroach-certs --host=cockroachdb-public
-        ```
+              ```bash
+              kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc1
+              ```
 
-        8. Port forward the admin ui
+              ```bash
+              kubectl exec -it cockroachdb-client-secure -n $loc1 -- ./cockroach sql --certs-dir=/cockroach-certs --host=cockroachdb-public
+              ```
+
+        8. Port forward the DB Console.  **NOTE**: you first need to create a
+           user with admin rights so that you can log in to the console.
 
         ```bash
         kubectl port-forward cockroachdb-0 8080 --context $clus1 --namespace $loc1
