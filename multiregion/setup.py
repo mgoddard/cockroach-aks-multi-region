@@ -22,6 +22,7 @@ from time import sleep
 #     'us-central1-b': 'gke_cockroach-alex_us-central1-b_my-cluster',
 #     'us-west1-b': 'gke_cockroach-alex_us-west1-b_my-cluster',
 # }
+
 contexts = { 'westus': 'crdb-aks-westus', 'centralus': 'crdb-aks-centralus', 'eastus': 'crdb-aks-eastus' }
 regions = { 'westus': 'westus', 'centralus': 'centralus', 'eastus': 'eastus' }
 
@@ -72,15 +73,18 @@ for zone, context in contexts.items():
 try:
     os.mkdir(certs_dir)
 except OSError:
-    pass
+    print("directory " + certs_dir + " already exists.  Please remove it and try again.")
+    sys.exit(1)
 try:
     os.mkdir(ca_key_dir)
 except OSError:
-    pass
+    print("directory " + ca_key_dir + " already exists.  Please remove it and try again.")
+    sys.exit(1)
 try:
     os.mkdir(generated_files_dir)
 except OSError:
-    pass
+    print("directory " + generated_files_dir + " already exists.  Please remove it and try again.")
+    sys.exit(1)
 
 check_call([cockroach_path, 'cert', 'create-ca', '--certs-dir', certs_dir, '--ca-key', ca_key_dir+'/ca.key'])
 check_call([cockroach_path, 'cert', 'create-client', 'root', '--certs-dir', certs_dir, '--ca-key', ca_key_dir+'/ca.key'])
