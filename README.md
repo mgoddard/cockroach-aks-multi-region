@@ -116,6 +116,7 @@ cluster.  **NOTE**: This could take from a couple of minutes to **hours**
 to take effect.  Be patient.
 
 ```bash
+. ./env.sh
 kubectl get pods --selector app=cockroachdb --all-namespaces --context $clus1
 
 NAMESPACE NAME READY STATUS RESTARTS AGE
